@@ -1,0 +1,74 @@
+Projeto Grupo 2 - Termostato Digital
+1. Objetivo 
+O FSM se trata do projeto de uma máquina de vendas, trabalhando inicialmente para a entrega de 4 produtos distintos, mas podendo ser replicada (feitas as devidas adaptações) para quantos produtos se faça necessário. A maquina terá a função de selecionar o produto desejado e em resposta a isso ela mostrará o preço e a quantidade de produtos disponíveis. A maquina apenas aceitará pagamento em dinheiro e não será possivel devolver troco, o que estará explicito para o usuário e condicionará os preços dos produtos vendidos.
+ A maquina possui três entradas, uma destinada a receber os pagamentos, uma destinada a seleção do produto que se deseja comprar e uma para fins de reposição, registrando quantas unidades de cada produto se possui na maquina. A maquina possuirá também 
+2. Funcionamento Geral do Sistema
+Para o funcionamento exitoso da maquina se farão necessárias três entradas e três saídas, sendo elas: 
+	ENTRADAS: 
+		Receber pagamentos: serão utilizados sensores para determinar a quantidade de dinheiro inserido na maquina 
+		Seleção de produtos-compra: Se utilizará de um teclado com 4 digitos para determinar inicialmente qual dos produtos será selecionado para a compra.
+		Seleção de produtos-reposição: Utilizará um teclado interno (para que o cliente não possa acessa-lo) para se selecionar, o produto desejado e quantas unidade serão repostas do mesmo 
+
+	SAÍDAS:
+		Quantidade: A saída indica ao usuário quantas unidades do produto desejado se tem disponiveis para a compra, utilizando da ultima entrada de reposição subtraida do numero de vendas daquele produto.
+		Preço: Indica o valor determinado do produto selecionado
+		Motor: Envia um Enable  para o sistema de entrega afim de ativar o mecanismo do mesmo.
+
+
+
+3. Diagrama de estados
+    
+
+
+
+5. Unidade de Controle (FSM)
+FSM síncrona com três estados:
+Estado
+Condição
+Ação
+S0
+TEMP < Tmin
+Liga Aquecedor
+S1
+TEMP > Tmax
+Liga Ventilador
+S2
+Tmin ≤ TEMP ≤ Tmax
+Nenhuma ação
+
+Transições ocorrem a cada ciclo de clock com base na comparação.
+
+6. Módulo de Display
+Converte TEMP para BCD e atualiza display de 7 segmentos usando multiplexação.
+
+7. Tabela de Verificação
+TEMP (°C)
+LT_MIN
+GT_MAX
+IN_RANGE
+Saída Esperada
+10
+1
+0
+0
+Aquecedor ON
+25
+0
+0
+1
+Nenhuma
+40
+0
+1
+0
+Ventilador ON
+
+
+
+9. Considerações RTL
+EMP, Tmin, Tmax e os estados da FSM serão armazenados em registradores. Comparações e controle serão descritos em lógica RTL. Entradas externas permitirão atualizar os valores de Tmin e Tmax dinamicamente.
+12. Conclusão
+O projeto descreve um termostato RTL modular, com controle térmico eficiente e adequado à implementação em FPGAs ou ASICs.
+
+
+
