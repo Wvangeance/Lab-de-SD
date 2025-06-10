@@ -1,4 +1,4 @@
-# [cite_start]Especificação do Projeto: Máquina de Vendas 
+# Especificação do Projeto: Máquina de Vendas 
 
 [cite_start]Este documento descreve a especificação de uma Máquina de Vendas Automática implementada em VHDL, utilizando uma Máquina de Estados Finitos (FSM) em nível RTL. [cite_start]O projeto tem como objetivo controlar a lógica de seleção, pagamento, entrega e reposição de produtos.
 
