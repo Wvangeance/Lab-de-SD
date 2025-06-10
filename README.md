@@ -1,152 +1,105 @@
-# Controlador de Máquina de Vendas – FSM em VHDL
+# [cite_start]Especificação do Projeto: Máquina de Vendas 
 
-## 📌 Descrição Geral
-
-Este projeto consiste em uma **Máquina de Estados Finitos (FSM)** escrita em **VHDL** e sintetizável em **nível RTL**, responsável por controlar uma **máquina de vendas automática**, com funcionalidades de compra, exibição de informações e reposição de produtos.
+[cite_start]Este documento descreve a especificação de uma Máquina de Vendas Automática implementada em VHDL, utilizando uma Máquina de Estados Finitos (FSM) em nível RTL. [cite_start]O projeto tem como objetivo controlar a lógica de seleção, pagamento, entrega e reposição de produtos.
 
 ---
 
-## ✅ Requisitos Funcionais
+## ⚙️ Funcionamento Geral do Sistema
 
-### Estrutura da Máquina
+[cite_start]A máquina de vendas foi projetada para operar com quatro produtos. [cite_start]Ela aceita apenas pagamento em dinheiro e não fornece troco. [cite_start]A entrega do produto só ocorre após o pagamento completo.
 
-* A máquina de vendas opera inicialmente com **4 produtos distintos**.
-* O design deve ser **escalável**, permitindo a adição de mais produtos com adaptações mínimas.
+[cite_start]Existem dois modos de operação:
+* [cite_start]**Modo Cliente**: Para compra e seleção de produtos.
+* [cite_start]**Modo Operador**: Para a reposição dos produtos no sistema.
 
-### Lógica de Vendas
+### Interação Usuário - Máquina (Compra)
+1.  [cite_start]O cliente pressiona o botão `COMPRA`.
+2.  [cite_start]Seleciona o produto desejado com `product_select_buy`.
+3.  [cite_start]Visualiza o preço e a quantidade nos visores `price_display` e `quantity_display`.
+4.  [cite_start]Insere o dinheiro progressivamente (`money_in`).
+5.  [cite_start]Quando o valor inserido cobre o preço do produto, o cliente pressiona `PAG`.
+6.  [cite_start]A FSM ativa o motor e entrega o produto.
 
-* Permitir a **seleção de um produto**.
-* Ao selecionar o produto, **exibir o preço e a quantidade disponível**.
-* Aceitar **apenas pagamento em dinheiro**.
-* **Não há devolução de troco** — os preços são ajustados para refletir essa limitação, com informação clara ao usuário.
-* A **entrega do produto ocorre apenas após o pagamento integral**.
-
----
-
-## 🧽 Sensores e Entradas
-
-* **Recebimento de Pagamentos**: sensores detectam a quantia inserida.
-* **Seleção de Produtos (Compra)**: teclado com 4 dígitos para escolha do produto pelo cliente.
-* **Seleção de Produtos (Reposição)**: teclado interno (acesso restrito) para escolha do produto e da quantidade a repor.
+### Interação com Operador (Reposição)
+1.  [cite_start]O operador pressiona `REP`.
+2.  [cite_start]Seleciona o produto e insere a quantidade desejada para a reposição.
+3.  [cite_start]Pressiona `REP` novamente para confirmar a operação ou `ESQ` para sair.
 
 ---
 
-## 🔋 Saídas
+## 📊 Máquina de Estados Finitos (FSM)
 
-* **Quantidade**: exibição do número de unidades disponíveis (reposição - vendas).
-* **Preço**: exibição do valor do produto selecionado.
-* **Motor**: sinal de `Enable` ativa o mecanismo de entrega.
+[cite_start]O controle do sistema é realizado por uma FSM com quatro estados principais, conforme detalhado no diagrama da Figura 1 do documento de especificação.
 
----
+### Estados da FSM
 
-## ❌ Restrições Não Funcionais
+* **Wait**
+    * [cite_start]Estado inicial que aguarda uma ação do cliente ou operador.
+    * [cite_start]Transição para `Seleção_C` ao receber o sinal `COMPRA`.
+    * [cite_start]Transição para `Seleção_R` ao receber o sinal `REP`.
 
-* A lógica deve ser implementada como uma **FSM em RTL**, de **alto nível** e **sintetizável**.
-* **Não utilizar `wait` nem `delay`** — todo controle de tempo deve ser feito com **contadores de ciclos de clock**.
-* O clock de entrada é assumido como **1 Hz**, para simplificação.
+* **Seleção\_C (Compra)**
+    * Neste estado, o preço e a quantidade do produto escolhido são exibidos.
+    * [cite_start]Permite uma nova seleção (`SELECT_C`), o cancelamento da compra (`ESC`), ou a realização do pagamento (`PAG`) se houver produto disponível.
 
----
+* **Seleção\_R (Reposição)**
+    * Permite ao operador selecionar um produto e definir a quantidade a ser reposta.
+    * [cite_start]O comando `REP` confirma a nova quantidade.
+    * [cite_start]O comando `ESQ` faz o sistema retornar ao estado inicial (`Wait`).
 
-## 🔌 Requisitos de Interface
-
-### Entradas
-
-| Sinal                      | Descrição                                                |
-| -------------------------- | -------------------------------------------------------- |
-| `clk`                      | Clock de entrada (1 Hz)                                  |
-| `reset`                    | Reset geral da máquina                                   |
-| `money_in`                 | Representa o valor em dinheiro inserido                  |
-| `product_select_buy`       | Seleção de produto para compra (4 bits)                  |
-| `product_select_replenish` | Seleção de produto para reposição (interno)              |
-| `replenish_quantity`       | Quantidade de unidades a serem repostas                  |
-| `COMPRA`                   | Inicia o processo de compra                              |
-| `SELECT_C`                 | Confirma seleção de produto para compra                  |
-| `PAG`                      | Indica que o pagamento foi concluído                     |
-| `REP`                      | Inicia ou confirma reposição                             |
-| `ESC`                      | Retorna ao estado inicial (cancelar seleção de compra)   |
-| `ESQ`                      | Retorna ao estado inicial após entrega ou reposição      |
-| `QTD = 1`                  | Indica que há pelo menos 1 unidade do produto disponível |
-| `RS = 1`                   | Indica que a reposição foi bem-sucedida                  |
-
-### Saídas
-
-| Sinal              | Descrição                                            |
-| ------------------ | ---------------------------------------------------- |
-| `quantity_display` | Exibe a quantidade disponível do produto selecionado |
-| `price_display`    | Exibe o preço do produto selecionado                 |
-| `motor_enable`     | Ativa o mecanismo de entrega do produto              |
+* **Entrega**
+    * [cite_start]Neste estado, o produto é entregue, ativando o sinal `motor_enable` por um ciclo.
+    * Após a entrega, o sistema retorna automaticamente ao estado `Wait`.
 
 ---
 
-## 🔄 Estados da FSM
+## 🔌 Entradas e Saídas do Sistema
 
-### 1. `Wait`
+### Entradas do Sistema
 
-* Estado inicial.
-* Espera interação do usuário.
-* Transições:
+| Sinal | Tipo | Tamanho | Descrição |
+| :--- | :--- | :--- | :--- |
+| `clk` | `std_logic` | 1 bit | Clock de 1 Hz. |
+| `reset` | `std_logic` | 1 bit | Reset síncrono da FSM. |
+| `money_in` | `integer` | 8 bits | Valor em dinheiro inserido. |
+| `product_select_buy` | `std_logic_vector` | 3 bits | Seleção de produto pelo cliente. |
+| `product_select_replenish` | `std_logic_vector` | 3 bits | Seleção de produto pelo operador. |
+| `replenish_quantity` | `integer` | 8 bits | Quantidade a ser adicionada na reposição. |
+| `COMPRA` | `std_logic` | 1 bit | Inicia o processo de compra. |
+| `SELECT_C` | `std_logic` | 1 bit | Confirma a seleção do produto. |
+| `PAG` | `std_logic` | 1 bit | Confirma o pagamento. |
+| `REP` | `std_logic` | 1 bit | Inicia ou confirma a reposição. |
+| `ESC` | `std_logic` | 1 bit | Cancela a compra. |
+| `ESQ` | `std_logic` | 1 bit | Sai de qualquer processo atual. |
+| `QTD` | `std_logic` | 1 bit | Indica que há produto disponível. |
+| `RS` | `std_logic` | 1 bit | Indica que a reposição foi bem-sucedida. |
 
-  * `COMPRA` → `Seleção_C`
-  * `REP` → `Seleção_R`
+### Saídas do Sistema
 
-### 2. `Seleção_C` (Compra)
-
-* O usuário escolhe o produto.
-* Exibe preço e quantidade disponíveis.
-* Transições:
-
-  * `SELECT_C` → loop interno (permite nova seleção)
-  * `PAG` (com `QTD = 1`) → `Entrega`
-  * `ESC` → `Wait`
-
-### 3. `Seleção_R` (Reposição)
-
-* O operador seleciona o produto e a quantidade a repor.
-* Transições:
-
-  * `REP` → loop interno (nova reposição)
-  * `ESQ` → `Wait`
-
-### 4. `Entrega`
-
-* A máquina entrega o produto.
-* Ativa `motor_enable`.
-* Transição:
-
-  * Após entrega → `Wait`
+| Sinal | Tipo | Tamanho | Descrição |
+| :--- | :--- | :--- | :--- |
+| `quantity_display` | `integer` | 8 bits | Mostra a quantidade do produto atual. |
+| `price_display` | `integer` | 8 bits | Mostra o preço do produto atual. |
+| `motor_enable` | `std_logic` | 1 bit | Ativa o motor de entrega. |
 
 ---
 
-## 📁 Estrutura de Arquivos (sugestão)
+## 💾 Registradores Internos
 
-```
-├── src/
-│   ├── vending_fsm.vhd
-│   ├── product_register.vhd
-│   ├── display_controller.vhd
-│   └── ...
-├── testbench/
-│   └── vending_tb.vhd
-├── README.md
-└── synthesis/
-    └── (arquivos de síntese e mapas de pinos)
-```
+| Nome | Tipo | Tamanho | Função |
+| :--- | :--- | :--- | :--- |
+| `state` | `enum` | 2 bits | Armazena o estado atual da FSM. |
+| `produto_sel_comprado` | `integer` | 2 bits | Índice do produto selecionado pelo cliente. |
+| `produto_sel_repor` | `integer` | 2 bits | Índice do produto selecionado para reposição. |
+| `preco[0..3]` | `integer array` | 4x8 bits | Vetor de preços dos produtos. |
+| `quantidade[0..3]` | `integer array` | 4x8 bits | Vetor de quantidades dos produtos. |
+| `valor_acumulado` | `integer` | 8 bits | Armazena o valor inserido pelo cliente. |
+| `entrega_efetuada` | `std_logic` | 1 bit | Indica que a entrega ocorreu. |
 
 ---
 
-## 🧪 Uso
+## 📝 Observações Finais
 
-### Compra de Produto
-
-1. Pressione `COMPRA`
-2. Selecione o produto com `product_select_buy`
-3. Visualize `price_display` e `quantity_display`
-4. Insira dinheiro (`money_in`) até atingir o valor total
-5. Pressione `PAG` para realizar a entrega
-
-### Reposição de Produto (uso interno)
-
-1. Pressione `REP`
-2. Selecione o produto com `product_select_replenish`
-3. Insira `replenish_quantity`
-4. Pressione `REP` para confirmar ou `ESQ` para sair
+* [cite_start]O sistema não devolve troco. [cite_start]Os preços devem ser múltiplos inteiros da menor moeda permitida.
+* O clock de 1 Hz simplifica o controle e a contagem de ciclos para ações temporizadas.
+* [cite_start]A estrutura trabalha com 4 produtos fixos, definidos em vetores de tamanho 4.
