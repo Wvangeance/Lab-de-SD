@@ -71,4 +71,10 @@ EMP, Tmin, Tmax e os estados da FSM serão armazenados em registradores. Compara
 O projeto descreve um termostato RTL modular, com controle térmico eficiente e adequado à implementação em FPGAs ou ASICs.
 
 
+PROD_X: A quantidade de produtos disponíveis para compra pode variar, no diagrama foi representado apenas um, pois os demais seguem os mesmos estados.
+ADD_IN: Modo de espera onde se compara o valor já inserido com o preço do produto. Caso o valor ainda seja inferior se retorna ao estado do produto, caso contrário é direcionado ao modo dispensa.
+REP_PRODX: Modo de reposição. Aguarda a liberação do switch para a indicação de quantos produtos foram repostos na maquina( estado atualiza_qtd)
+ATUALIZA_QTD: O operador indica na entrada de dados quantas unidades do produto selecionado foram repostas, apos a inserção do quarto bit, a quantidade disponível é atualizada no registrador do subtractor
+
+
 
