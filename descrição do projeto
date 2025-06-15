@@ -22,53 +22,6 @@ Para o funcionamento exitoso da maquina se farão necessárias três entradas e 
 
 
 5. Unidade de Controle (FSM)
-FSM síncrona com três estados:
-Estado
-Condição
-Ação
-S0
-TEMP < Tmin
-Liga Aquecedor
-S1
-TEMP > Tmax
-Liga Ventilador
-S2
-Tmin ≤ TEMP ≤ Tmax
-Nenhuma ação
-
-Transições ocorrem a cada ciclo de clock com base na comparação.
-
-6. Módulo de Display
-Converte TEMP para BCD e atualiza display de 7 segmentos usando multiplexação.
-
-7. Tabela de Verificação
-TEMP (°C)
-LT_MIN
-GT_MAX
-IN_RANGE
-Saída Esperada
-10
-1
-0
-0
-Aquecedor ON
-25
-0
-0
-1
-Nenhuma
-40
-0
-1
-0
-Ventilador ON
-
-
-
-9. Considerações RTL
-EMP, Tmin, Tmax e os estados da FSM serão armazenados em registradores. Comparações e controle serão descritos em lógica RTL. Entradas externas permitirão atualizar os valores de Tmin e Tmax dinamicamente.
-12. Conclusão
-O projeto descreve um termostato RTL modular, com controle térmico eficiente e adequado à implementação em FPGAs ou ASICs.
 
 
 PROD_X: A quantidade de produtos disponíveis para compra pode variar, no diagrama foi representado apenas um, pois os demais seguem os mesmos estados.
