@@ -5,8 +5,8 @@ use ieee.numeric_std.all;
 entity Acumulador_Valor is
     port (
         clk        : in  std_logic;
-        reset      : in  std_logic; -- Reset síncrono para zerar o valor
-        add_enable : in  std_logic; -- Habilita a soma
+        reset      : in  std_logic; -- Usado por 'zera_tudo' ou 'devolve'
+        add_enable : in  std_logic; -- Usado por 'credita'
         valor_in   : in  integer range 0 to 255;
         valor_total: out integer range 0 to 255
     );
@@ -27,5 +27,4 @@ begin
     end process;
 
     valor_total <= valor_interno;
-
 end architecture Behavioral;
