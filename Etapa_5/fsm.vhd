@@ -1,122 +1,93 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity fsm is
+entity fsm_atualizada is
     port (
         -- === Sinais Globais ===
         clk   : in std_logic;
-        reset : in std_logic;
+        rst   : in std_logic; -- Reset geral do sistema
 
-        -- === Entradas de Botões (do usuário) ===
-        COMPRA   : in std_logic;
-        REP      : in std_logic;
-        SELECT_C : in std_logic;
-        PAG      : in std_logic;
-        ESC      : in std_logic;
-        ESQ      : in std_logic;
-
-        -- === Entradas de Status (vindos do Datapath) ===
-        QTD_ok           : in std_logic;
-        valor_suficiente : in std_logic;
+        -- === Entradas de Botões e Status (do Datapath/Usuário) ===
+        valor_moeda_in   : in  integer range 0 to 255; -- Entrada 'val' do moedeiro
+        rst_cred         : in  std_logic; -- Botão para resetar o crédito
+        saldo_suficiente : in  std_logic; -- Condição 'cod_ok' do comparador
 
         -- === Saídas de Controle (para o Datapath) ===
-        sel_op_compra           : out std_logic;
-        load_sel_compra_enable  : out std_logic;
-        load_sel_repo_enable    : out std_logic;
-        acumulador_add_enable   : out std_logic;
-        acumulador_reset        : out std_logic;
-        estoque_write_enable    : out std_logic;
-        estoque_decrementa      : out std_logic;
-        
-        -- === Saída para Atuador Externo ===
-        motor_enable : out std_logic -- Ativa o motor de entrega 
+        zera_tudo           : out std_logic; -- Ação do estado s_idle
+        habilita_moedeiro   : out std_logic; -- Ação do estado s_wait
+        load_product_reg    : out std_logic; -- Ação 'le_prod' do estado s_le
+        credita             : out std_logic; -- Ação do estado s_cred
+        entrega_prod        : out std_logic  -- Ação do estado s_prod
     );
-end entity fsm;
+end entity fsm_atualizada;
 
-architecture Behavioral of fsm is
+architecture Behavioral of fsm_atualizada is
 
-    -- Definição dos estados da FSM, conforme o diagrama 
-    type state_type is (WAIT, SELECAO_C, SELECAO_R, ENTREGA);
+    -- Definição dos novos estados da FSM
+    type state_type is (s_idle, s_wait, s_le, s_cred, s_prod);
 
     -- Sinais para o estado atual e o próximo estado
     signal current_state, next_state : state_type;
 
 begin
 
-    -- Processo Sequencial: Atualiza o estado atual na borda de subida do clock
-    -- e lida com o reset síncrono.
-    process(clk, reset)
+    -- PROCESSO 1: Lógica Sequencial (Atualiza o estado na borda do clock)
+    state_register: process(clk, rst)
     begin
-        if reset = '1' then
-            current_state <= WAIT; -- No reset, vai para o estado inicial WAIT 
+        if rst = '1' then
+            current_state <= s_idle; -- Estado inicial de reset
         elsif rising_edge(clk) then
             current_state <= next_state;
         end if;
-    end process;
+    end process state_register;
 
-    -- Processo Combinacional: Determina o próximo estado e as saídas de controle
-    -- com base no estado atual e nas entradas.
-    process(current_state, COMPRA, REP, SELECT_C, PAG, ESC, ESQ, QTD_ok, valor_suficiente)
+    -- PROCESSO 2: Lógica Combinacional (Define o próximo estado e as saídas)
+    state_logic: process(current_state, valor_moeda_in, rst_cred, saldo_suficiente)
     begin
-        -- --- Comportamento Padrão ---
-        -- Para evitar a inferência de latches, definimos um valor padrão para todas as saídas.
-        -- Por padrão, todos os sinais de controle estão inativos.
-        next_state               <= current_state; -- Permanece no mesmo estado a menos que uma transição ocorra
-        sel_op_compra            <= '0';
-        load_sel_compra_enable   <= '0';
-        load_sel_repo_enable     <= '0';
-        acumulador_add_enable    <= '0';
-        acumulador_reset         <= '0';
-        estoque_write_enable     <= '0';
-        estoque_decrementa       <= '0';
-        motor_enable             <= '0';
+        -- Valores padrão para todas as saídas (evita latches)
+        zera_tudo           <= '0';
+        habilita_moedeiro   <= '0';
+        load_product_reg    <= '0';
+        credita             <= '0';
+        entrega_prod        <= '0';
 
-        -- --- Lógica da Máquina de Estados ---
+        -- Lógica de transição e saídas para cada estado
         case current_state is
+            when s_idle =>
+                zera_tudo <= '1';  -- Ação: zera tudo
+                next_state <= s_wait; -- Transição incondicional para s_wait
 
-            -- ESTADO DE ESPERA
-            when WAIT =>
-                sel_op_compra <= '1'; -- Permite visualizar preço do produto do cliente
-                if COMPRA = '1' then
-                    next_state <= SELECAO_C; -- Transição para o estado de compra 
-                elsif REP = '1' then
-                    next_state <= SELECAO_R; -- Transição para o estado de reposição 
+            when s_wait =>
+                habilita_moedeiro <= '1'; -- Ação: habilita o moedeiro
+                if valor_moeda_in > 0 then
+                    next_state <= s_le; -- Transição: moeda detectada
+                else
+                    next_state <= s_wait; -- Permanece esperando
                 end if;
 
-            -- ESTADO DE SELEÇÃO DE COMPRA
-            when SELECAO_C =>
-                sel_op_compra <= '1';
-                acumulador_add_enable <= '1'; -- Permite que o cliente insira dinheiro 
-
-                if PAG = '1' and QTD_ok = '1' and valor_suficiente = '1' then
-                    next_state <= ENTREGA; -- Condição para realizar o pagamento e entregar 
-                elsif SELECT_C = '1' then
-                    next_state <= SELECAO_C; -- Permite nova seleção 
-                    load_sel_compra_enable <= '1'; -- Carrega o novo produto selecionado
-                elsif ESC = '1' then
-                    next_state <= WAIT; -- Cancela a compra 
-                    acumulador_reset <= '1'; -- Zera o dinheiro inserido
+            when s_le =>
+                load_product_reg <= '1'; -- Ação: permite a seleção/leitura do produto
+                if valor_moeda_in > 0 then
+                    next_state <= s_cred; -- Transição: credita a moeda detectada
+                elsif rst_cred = '1' then
+                    next_state <= s_wait; -- Transição: usuário pede devolução/reset do crédito
+                    zera_tudo <= '1';     -- Ação associada: zera o crédito
+                elsif saldo_suficiente = '1' then
+                    next_state <= s_prod; -- Transição: saldo é suficiente para o produto selecionado
+                else
+                    next_state <= s_wait; -- Transição padrão: volta a esperar se nada acontecer
                 end if;
 
-            -- ESTADO DE SELEÇÃO DE REPOSIÇÃO
-            when SELECAO_R =>
-                sel_op_compra <= '0'; -- Permite visualizar o produto que o operador está selecionando
-                if REP = '1' then
-                    next_state <= SELECAO_R; -- Confirma a reposição 
-                    load_sel_repo_enable <= '1'; -- Carrega o produto a ser reposto
-                    estoque_write_enable <= '1'; -- Habilita a escrita da nova quantidade no datapath
-                elsif ESQ = '1' then
-                    next_state <= WAIT; -- Sai do modo de reposição 
-                end if;
-                
-            -- ESTADO DE ENTREGA DO PRODUTO
-            when ENTREGA =>
-                motor_enable <= '1'; -- Ativa o motor por um ciclo de clock 
-                estoque_decrementa <= '1'; -- Decrementa o estoque do produto vendido
-                acumulador_reset <= '1'; -- Zera o valor para a próxima compra
-                next_state <= WAIT; -- Retorna ao estado inicial 
+            when s_cred =>
+                credita <= '1'; -- Ação: comanda o datapath para somar o valor da moeda
+                next_state <= s_le; -- Retorna para 's_le' para continuar o processo
+
+            when s_prod =>
+                entrega_prod <= '1'; -- Ação: comanda a entrega do produto e debita o valor
+                zera_tudo <= '1';    -- Ação extra: zera o saldo restante
+                next_state <= s_idle; -- Retorna ao estado inicial para um novo ciclo
 
         end case;
-    end process;
+    end process state_logic;
 
 end architecture Behavioral;

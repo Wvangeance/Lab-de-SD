@@ -1,175 +1,139 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity tb_fsm is
-end entity tb_fsm;
+entity tb_fsm_atualizada is
+end entity tb_fsm_atualizada;
 
-architecture test of tb_fsm is
+architecture test of tb_fsm_atualizada is
 
-    -- Instanciação do componente a ser testado
-    component fsm is
+    -- Componente a ser testado
+    component fsm_atualizada is
         port (
-            clk                  : in  std_logic;
-            reset                : in  std_logic;
-            COMPRA               : in  std_logic;
-            REP                  : in  std_logic;
-            SELECT_C             : in  std_logic;
-            PAG                  : in  std_logic;
-            ESC                  : in  std_logic;
-            ESQ                  : in  std_logic;
-            QTD_ok               : in  std_logic;
-            valor_suficiente     : in  std_logic;
-            sel_op_compra          : out std_logic;
-            load_sel_compra_enable : out std_logic;
-            load_sel_repo_enable   : out std_logic;
-            acumulador_add_enable  : out std_logic;
-            acumulador_reset       : out std_logic;
-            estoque_write_enable   : out std_logic;
-            estoque_decrementa     : out std_logic;
-            motor_enable         : out std_logic
+            clk              : in  std_logic;
+            rst              : in  std_logic;
+            valor_moeda_in   : in  integer range 0 to 255;
+            rst_cred         : in  std_logic;
+            saldo_suficiente : in  std_logic;
+            zera_tudo        : out std_logic;
+            habilita_moedeiro: out std_logic;
+            load_product_reg : out std_logic;
+            credita          : out std_logic;
+            entrega_prod     : out std_logic
         );
     end component;
 
-    -- Sinais para conectar aos ports da FSM
-    signal s_clk                  : std_logic := '0';
-    signal s_reset                : std_logic;
-    signal s_COMPRA               : std_logic := '0';
-    signal s_REP                  : std_logic := '0';
-    signal s_SELECT_C             : std_logic := '0';
-    signal s_PAG                  : in std_logic := '0';
-    signal s_ESC                  : std_logic := '0';
-    signal s_ESQ                  : std_logic := '0';
-    signal s_QTD_ok               : std_logic := '0';
-    signal s_valor_suficiente     : std_logic := '0';
-    signal s_sel_op_compra        : std_logic;
-    signal s_load_sel_compra_enable: std_logic;
-    signal s_load_sel_repo_enable : std_logic;
-    signal s_acumulador_add_enable: std_logic;
-    signal s_acumulador_reset     : std_logic;
-    signal s_estoque_write_enable : std_logic;
-    signal s_estoque_decrementa   : std_logic;
-    signal s_motor_enable         : std_logic;
-    
-    -- Configuração do Clock
+    -- Sinais para conectar ao componente
+    signal s_clk              : std_logic := '0';
+    signal s_rst              : std_logic;
+    signal s_valor_moeda_in   : integer range 0 to 255;
+    signal s_rst_cred         : std_logic;
+    signal s_saldo_suficiente : std_logic;
+    signal s_zera_tudo        : std_logic;
+    signal s_habilita_moedeiro: std_logic;
+    signal s_load_product_reg : std_logic;
+    signal s_credita          : std_logic;
+    signal s_entrega_prod     : std_logic;
+
     constant CLK_PERIOD : time := 10 ns;
 
 begin
-    -- Conectando os sinais à instância do componente (Unit Under Test)
-    uut: fsm port map (
-        clk                    => s_clk,
-        reset                  => s_reset,
-        COMPRA                 => s_COMPRA,
-        REP                    => s_REP,
-        SELECT_C               => s_SELECT_C,
-        PAG                    => s_PAG,
-        ESC                    => s_ESC,
-        ESQ                    => s_ESQ,
-        QTD_ok                 => s_QTD_ok,
-        valor_suficiente       => s_valor_suficiente,
-        sel_op_compra          => s_sel_op_compra,
-        load_sel_compra_enable => s_load_sel_compra_enable,
-        load_sel_repo_enable   => s_load_sel_repo_enable,
-        acumulador_add_enable  => s_acumulador_add_enable,
-        acumulador_reset       => s_acumulador_reset,
-        estoque_write_enable   => s_estoque_write_enable,
-        estoque_decrementa     => s_estoque_decrementa,
-        motor_enable           => s_motor_enable
+    -- Instanciação da FSM (Unit Under Test)
+    UUT: fsm_atualizada port map (
+        clk              => s_clk,
+        rst              => s_rst,
+        valor_moeda_in   => s_valor_moeda_in,
+        rst_cred         => s_rst_cred,
+        saldo_suficiente => s_saldo_suficiente,
+        zera_tudo        => s_zera_tudo,
+        habilita_moedeiro=> s_habilita_moedeiro,
+        load_product_reg => s_load_product_reg,
+        credita          => s_credita,
+        entrega_prod     => s_entrega_prod
     );
 
-    -- Geração de clock contínuo
+    -- Geração de clock
     s_clk <= not s_clk after CLK_PERIOD / 2;
 
-    -- Processo de estímulo para testar os cenários
+    -- Processo de estímulo
     stimulus: process
     begin
-        report ">>> Iniciando Testbench da FSM <<<";
-
-        -- 1. Pulso de Reset inicial
-        s_reset <= '1';
+        report ">>> INICIANDO TESTBENCH DA FSM ATUALIZADA <<<";
+        
+        -- Inicializa entradas
+        s_valor_moeda_in <= 0;
+        s_rst_cred <= '0';
+        s_saldo_suficiente <= '0';
+        
+        -- Pulso de Reset
+        s_rst <= '1';
         wait for CLK_PERIOD;
-        s_reset <= '0';
+        s_rst <= '0';
+        wait for CLK_PERIOD;
+        report "FSM em s_idle, zera_tudo=" & std_logic'image(s_zera_tudo);
+        assert s_zera_tudo = '1' report "Falha: FSM nao comecou em s_idle" severity error;
+        
+        wait for CLK_PERIOD;
+        report "FSM em s_wait, habilita_moedeiro=" & std_logic'image(s_habilita_moedeiro);
+        assert s_habilita_moedeiro = '1' report "Falha: FSM nao foi para s_wait" severity error;
+
+        -------------------------------------------
+        report "--- CENARIO 1: Insercao de Moeda ---";
+        s_valor_moeda_in <= 50; -- Simula moeda detectada
+        wait for CLK_PERIOD;
+        report "FSM em s_le, load_product_reg=" & std_logic'image(s_load_product_reg);
+        assert s_load_product_reg = '1' report "Falha: FSM nao foi para s_le" severity error;
+        
+        wait for CLK_PERIOD;
+        report "FSM em s_cred, credita=" & std_logic'image(s_credita);
+        assert s_credita = '1' report "Falha: FSM nao foi para s_cred" severity error;
+        
+        wait for CLK_PERIOD;
+        s_valor_moeda_in <= 0; -- Para o ciclo de credito
+        report "FSM de volta a s_le...";
+        wait for CLK_PERIOD;
+        report "FSM de volta a s_wait...";
+        assert s_habilita_moedeiro = '1' report "Falha: FSM nao retornou para s_wait" severity error;
+        
+        wait for CLK_PERIOD * 3;
+        
+        -------------------------------------------
+        report "--- CENARIO 2: Compra Bem-sucedida ---";
+        s_valor_moeda_in <= 100; -- Insere credito
+        wait for CLK_PERIOD * 3; -- Passa por s_le -> s_cred -> s_le
+        s_valor_moeda_in <= 0;
+        
+        report "Saldo inserido. FSM em s_le. Simulando saldo suficiente...";
+        s_saldo_suficiente <= '1';
         wait for CLK_PERIOD;
         
-        -------------------------------------------------------------
-        report "--- CENARIO 1: Compra bem-sucedida ---";
-        -------------------------------------------------------------
-        -- Pressiona COMPRA para iniciar
-        s_COMPRA <= '1';
-        wait for CLK_PERIOD;
-        s_COMPRA <= '0';
-        wait for CLK_PERIOD;
-        -- Neste ponto, a FSM deve estar em SELECAO_C
-        report "FSM em SELECAO_C, acumulador_add_enable = " & std_logic'image(s_acumulador_add_enable);
-        assert s_acumulador_add_enable = '1' report "Falha: add_enable deveria ser '1'" severity error;
-
-        -- Simula que o produto está disponível e o dinheiro é suficiente
-        s_QTD_ok <= '1';
-        s_valor_suficiente <= '1';
-
-        -- Pressiona PAG para pagar
-        s_PAG <= '1';
-        wait for CLK_PERIOD;
-        s_PAG <= '0';
-        s_QTD_ok <= '0'; -- Reseta os status para o próximo teste
-        s_valor_suficiente <= '0';
-        wait for CLK_PERIOD;
-        -- Neste ponto, a FSM deve estar em ENTREGA e ativar os sinais corretos
-        report "FSM em ENTREGA, motor_enable = " & std_logic'image(s_motor_enable);
-        assert s_motor_enable = '1' and s_estoque_decrementa = '1' and s_acumulador_reset = '1' report "Falha: Sinais de entrega incorretos" severity error;
+        report "FSM em s_prod, entrega_prod=" & std_logic'image(s_entrega_prod);
+        assert s_entrega_prod = '1' report "Falha: FSM nao foi para s_prod" severity error;
+        s_saldo_suficiente <= '0';
         
-        -- No próximo ciclo, a FSM volta para WAIT
         wait for CLK_PERIOD;
-        report "FSM retornou para WAIT, motor_enable = " & std_logic'image(s_motor_enable);
-        assert s_motor_enable = '0' report "Falha: motor_enable deveria ser '0' apos a entrega" severity error;
-        wait for CLK_PERIOD * 5; -- Pausa entre os cenários
-
-        -------------------------------------------------------------
-        report "--- CENARIO 2: Compra cancelada ---";
-        -------------------------------------------------------------
-        -- Pressiona COMPRA para iniciar
-        s_COMPRA <= '1';
-        wait for CLK_PERIOD;
-        s_COMPRA <= '0';
-        wait for CLK_PERIOD;
+        report "FSM de volta a s_idle...";
+        assert s_zera_tudo = '1' report "Falha: FSM nao retornou a s_idle" severity error;
         
-        -- Pressiona ESC para cancelar
-        s_ESC <= '1';
-        wait for CLK_PERIOD;
-        s_ESC <= '0';
-        wait for CLK_PERIOD;
-        -- Neste ponto, a FSM deve ter voltado para WAIT e resetado o acumulador
-        report "FSM cancelou a compra, acumulador_reset = " & std_logic'image(s_acumulador_reset);
-        assert s_acumulador_reset = '1' report "Falha: acumulador_reset deveria ser '1' ao cancelar" severity error;
-        wait for CLK_PERIOD * 5; -- Pausa entre os cenários
-
-        -------------------------------------------------------------
-        report "--- CENARIO 3: Ciclo de reposicao ---";
-        -------------------------------------------------------------
-        -- Pressiona REP para entrar no modo de reposição
-        s_REP <= '1';
-        wait for CLK_PERIOD;
-        s_REP <= '0';
-        wait for CLK_PERIOD;
-        report "FSM em SELECAO_R";
+        wait for CLK_PERIOD * 3;
         
-        -- Pressiona REP novamente para confirmar a reposição
-        s_REP <= '1';
-        wait for CLK_PERIOD;
-        s_REP <= '0';
-        wait for CLK_PERIOD;
-        -- Verifica se os sinais de controle de reposição foram ativados
-        report "FSM confirmou reposicao, estoque_write_enable = " & std_logic'image(s_estoque_write_enable);
-        assert s_estoque_write_enable = '1' and s_load_sel_repo_enable = '1' report "Falha: Sinais de reposicao incorretos" severity error;
-
-        -- Pressiona ESQ para sair do modo de reposição
-        s_ESQ <= '1';
-        wait for CLK_PERIOD;
-        s_ESQ <= '0';
-        wait for CLK_PERIOD;
-        report "FSM saiu do modo de reposicao e voltou para WAIT";
+        -------------------------------------------
+        report "--- CENARIO 3: Reset de Credito ---";
+        s_valor_moeda_in <= 25; -- Insere credito
+        wait for CLK_PERIOD * 3;
+        s_valor_moeda_in <= 0;
         
-        report ">>> Testbench da FSM concluido. <<<";
-        wait; -- Fim da simulação
-    end process stimulus;
-
+        report "FSM em s_le. Pressionando botao de reset de credito...";
+        s_rst_cred <= '1';
+        wait for CLK_PERIOD;
+        s_rst_cred <= '0';
+        
+        report "Verificando se credito foi zerado e FSM voltou a s_wait...";
+        assert s_zera_tudo = '1' report "Falha: zera_tudo nao foi ativado no rst_cred" severity error;
+        wait for CLK_PERIOD;
+        assert s_habilita_moedeiro = '1' report "Falha: FSM nao retornou a s_wait apos rst_cred" severity error;
+        
+        report ">>> TESTBENCH DA FSM CONCLUIDO <<<";
+        wait;
+    end process;
+    
 end architecture test;
