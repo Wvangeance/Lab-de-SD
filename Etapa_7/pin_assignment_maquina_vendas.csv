@@ -1,0 +1,57 @@
+To,Location
+# Clock e Reset,
+clk,PIN_N2
+reset,PIN_R22
+# Entradas do Cliente,
+COMPRA,PIN_R21
+SELECT_C,PIN_T22
+PAG,PIN_T21
+ESC,PIN_U22
+money_in[0],PIN_Y21
+money_in[1],PIN_Y22
+money_in[2],PIN_W22
+money_in[3],PIN_W21
+money_in[4],PIN_V22
+money_in[5],PIN_V21
+money_in[6],PIN_U21
+money_in[7],PIN_U20
+product_select_buy[0],PIN_M21
+product_select_buy[1],PIN_M22
+product_select_buy[2],PIN_L22
+# Entradas do Operador,
+REP,PIN_L21
+ESQ,PIN_K22
+product_select_replenish[0],PIN_K21
+product_select_replenish[1],PIN_J22
+product_select_replenish[2],PIN_J21
+replenish_quantity[0],PIN_H22
+replenish_quantity[1],PIN_H21
+replenish_quantity[2],PIN_G22
+replenish_quantity[3],PIN_G21
+replenish_quantity[4],PIN_F22
+replenish_quantity[5],PIN_F21
+replenish_quantity[6],PIN_E22
+replenish_quantity[7],PIN_E21
+# Sinais auxiliares,
+QTD,PIN_D22
+RS,PIN_D21
+# Saídas - Motor,
+motor_enable,PIN_C22
+# Displays de Preço (price_display) - HEX0,
+price_display[0],PIN_AD14
+price_display[1],PIN_AC14
+price_display[2],PIN_AD13
+price_display[3],PIN_AC13
+price_display[4],PIN_AB13
+price_display[5],PIN_AD12
+price_display[6],PIN_AC12
+price_display[7],PIN_AB12
+# Displays de Quantidade (quantity_display) - HEX1,
+quantity_display[0],PIN_Y11
+quantity_display[1],PIN_W11
+quantity_display[2],PIN_V11
+quantity_display[3],PIN_U11
+quantity_display[4],PIN_T11
+quantity_display[5],PIN_Y10
+quantity_display[6],PIN_W10
+quantity_display[7],PIN_V10
