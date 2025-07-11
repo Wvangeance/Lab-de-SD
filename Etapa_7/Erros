@@ -1,18 +1,9 @@
-Info (171003): Fitter is performing an Auto Fit compilation, which may decrease Fitter effort to reduce compilation time
-Warning (292013): Feature LogicLock is only available with a valid subscription license. You can purchase a software subscription to gain full access to this feature.
-Error (171016): Can't place node "LEDR[0]" -- illegal location assignment PIN_G19
-Error (171016): Can't place node "HEX0[4]" -- illegal location assignment PIN_AD9
-Error (171016): Can't place node "HEX4[2]" -- illegal location assignment PIN_AD18
-Error (171016): Can't place node "HEX4[3]" -- illegal location assignment PIN_AH18
-Error (171016): Can't place node "HEX4[4]" -- illegal location assignment PIN_AG18
-Error (171016): Can't place node "HEX5[3]" -- illegal location assignment PIN_AA21
-Error (171016): Can't place node "KEY[1]" -- illegal location assignment PIN_R21
-Info (171121): Fitter preparation operations ending: elapsed time is 00:00:00
-Warning (171167): Found invalid Fitter assignments. See the Ignored Assignments panel in the Fitter Compilation Report for more information.
-Error (171000): Can't fit design in device
-Error: Quartus II 64-Bit Fitter was unsuccessful. 8 errors, 3 warnings
-	Error: Peak virtual memory: 567 megabytes
-	Error: Processing ended: Fri Jul 11 20:42:03 2025
-	Error: Elapsed time: 00:00:01
-	Error: Total CPU time (on all processors): 00:00:01
-Error (293001): Quartus II Full Compilation was unsuccessful. 10 errors, 7 warnings
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(29) near text "Wait";  expecting an identifier ("wait" is a reserved keyword), or a character
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(45) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(63) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(77) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(95) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(97) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(103) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(106) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Info (12021): Found 0 design units, including 0 entities, in source file maquina_vendas_fpga.vhd
