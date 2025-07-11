@@ -1,0 +1,14 @@
+Info (12021): Found 6 design units, including 3 entities, in source file maquina_vendas_fpga.vhd
+	Info (12022): Found design unit 1: divisor_de_clock-Behavioral
+	Info (12022): Found design unit 2: decodificador_7seg-Behavioral
+	Info (12022): Found design unit 3: maquina_vendas_simples-Behavioral
+	Info (12023): Found entity 1: divisor_de_clock
+	Info (12023): Found entity 2: decodificador_7seg
+	Info (12023): Found entity 3: maquina_vendas_simples
+Error (10482): VHDL error at maquina_vendas_fpga.vhd(30): object "std_logic_vector" is used but not declared
+Error: Quartus II 64-Bit Analysis & Synthesis was unsuccessful. 1 error, 1 warning
+	Error: Peak virtual memory: 473 megabytes
+	Error: Processing ended: Fri Jul 11 20:21:20 2025
+	Error: Elapsed time: 00:00:01
+	Error: Total CPU time (on all processors): 00:00:01
+Error (293001): Quartus II Full Compilation was unsuccessful. 3 errors, 1 warning
