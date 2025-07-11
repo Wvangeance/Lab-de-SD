@@ -1,0 +1,131 @@
+-- Bibliotecas para a primeira entidade
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+------------------------------------------------------------------
+-- Componente 1: Divisor de Clock (Necessario para a FPGA)
+------------------------------------------------------------------
+entity divisor_de_clock is
+    port (clk_in: in std_logic; rst: in std_logic; clk_out: out std_logic);
+end entity;
+architecture Behavioral of divisor_de_clock is
+    signal contador : integer range 0 to 25000000 := 0;
+    signal s_clk_1hz: std_logic := '0';
+begin
+    process(clk_in, rst)
+    begin
+        if rst = '1' then contador <= 0; s_clk_1hz <= '0';
+        elsif rising_edge(clk_in) then
+            if contador = 24999999 then contador <= 0; s_clk_1hz <= not s_clk_1hz;
+            else contador <= contador + 1; end if;
+        end if;
+    end process;
+    clk_out <= s_clk_1hz;
+end architecture;
+
+------------------------------------------------------------------
+-- Componente 2: Decodificador 7 Segmentos (Necessario para a FPGA)
+------------------------------------------------------------------
+-- [CORRECAO] Adicionada a declaracao de biblioteca para esta entidade
+library ieee;
+use ieee.std_logic_1164.all;
+
+entity decodificador_7seg is
+    port (bcd_in: in std_logic_vector(3 downto 0); seg_out: out std_logic_vector(6 downto 0));
+end entity;
+architecture Behavioral of decodificador_7seg is
+begin
+    with bcd_in select
+        seg_out <= "1000000" when "0000", "1111001" when "0001", "0100100" when "0010",
+                   "0110000" when "0011", "0011001" when "0100", "0010010" when "0101",
+                   "0000010" when "0110", "1111000" when "0111", "0000000" when "1000",
+                   "0010000" when "1001", "1111111" when others;
+end architecture;
+
+------------------------------------------------------------------
+-- ENTIDADE DE TOPO: Maquina de Vendas Simplificada
+------------------------------------------------------------------
+-- [CORRECAO] Adicionada a declaracao de biblioteca para a entidade de topo
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity maquina_vendas_simples is
+    port (
+        -- Entradas Fisicas
+        CLOCK_50      : in  std_logic;
+        KEY           : in  std_logic_vector(3 downto 0);
+        SW            : in  std_logic_vector(1 downto 0);
+        -- Saidas Fisicas
+        LEDR          : out std_logic_vector(0 downto 0);
+        HEX0, HEX1    : out std_logic_vector(6 downto 0); -- Display de Estoque
+        HEX4, HEX5    : out std_logic_vector(6 downto 0)  -- Display de Preco
+    );
+end entity maquina_vendas_simples;
+
+architecture Behavioral of maquina_vendas_simples is
+    -- Nao precisa mais declarar os componentes pois as entidades ja estao visiveis
+    
+    -- Sinais internos
+    signal s_rst            : std_logic;
+    signal s_clk_1hz        : std_logic;
+    signal s_buy_button     : std_logic;
+    signal s_preco          : integer range 0 to 99;
+    
+    -- Memoria de estoque como um sinal de array
+    type tipo_estoque is array (0 to 3) of integer range 0 to 99;
+    signal s_estoque        : tipo_estoque := (10, 8, 15, 5); -- Valores iniciais
+    
+    -- Sinais para os displays
+    signal bcd_preco_d, bcd_preco_u     : std_logic_vector(3 downto 0);
+    signal bcd_estoque_d, bcd_estoque_u : std_logic_vector(3 downto 0);
+
+begin
+    -- === MAPEAMENTO DAS ENTRADAS E SAIDAS ===
+    s_rst        <= not KEY(0); -- KEY0 para reset geral
+    s_buy_button <= not KEY(1); -- KEY1 para comprar
+    -- Pisca o LED ao comprar, somente se houver estoque
+    LEDR(0)      <= '1' when s_buy_button = '1' and s_estoque(to_integer(unsigned(SW))) > 0 else '0'; 
+
+    -- === INSTANCIANDO O DIVISOR DE CLOCK ===
+    CLOCK_DIV: entity work.divisor_de_clock(Behavioral) port map (CLOCK_50, s_rst, s_clk_1hz);
+
+    -- === LOGICA COMBINACIONAL (Define o preco a ser mostrado) ===
+    -- Substitui a memoria de precos por uma logica simples
+    with SW select
+        s_preco <= 25 when "00", -- Produto 0 custa 25
+                   50 when "01", -- Produto 1 custa 50
+                   75 when "10", -- Produto 2 custa 75
+                   95 when "11", -- Produto 3 custa 95
+                   0  when others;
+                   
+    -- === LOGICA SEQUENCIAL (Decrementa o estoque ao comprar) ===
+    process(s_clk_1hz, s_rst)
+    begin
+        if s_rst = '1' then
+            s_estoque <= (10, 8, 15, 5); -- Reseta para os valores iniciais
+        elsif rising_edge(s_clk_1hz) then
+            if s_buy_button = '1' then
+                if s_estoque(to_integer(unsigned(SW))) > 0 then
+                    s_estoque(to_integer(unsigned(SW))) <= s_estoque(to_integer(unsigned(SW))) - 1;
+                end if;
+            end if;
+        end if;
+    end process;
+    
+    -- === LOGICA DOS DISPLAYS ===
+    -- Converte os numeros para BCD (Dezena e Unidade)
+    bcd_preco_d   <= std_logic_vector(to_unsigned(s_preco / 10, 4));
+    bcd_preco_u   <= std_logic_vector(to_unsigned(s_preco mod 10, 4));
+    
+    bcd_estoque_d <= std_logic_vector(to_unsigned(s_estoque(to_integer(unsigned(SW))) / 10, 4));
+    bcd_estoque_u <= std_logic_vector(to_unsigned(s_estoque(to_integer(unsigned(SW))) mod 10, 4));
+    
+    -- Decodifica os valores BCD para os displays de 7 segmentos
+    DECODE_PRECO_D: entity work.decodificador_7seg(Behavioral) port map(bcd_preco_d, HEX5);
+    DECODE_PRECO_U: entity work.decodificador_7seg(Behavioral) port map(bcd_preco_u, HEX4);
+    DECODE_ESTOQUE_D: entity work.decodificador_7seg(Behavioral) port map(bcd_estoque_d, HEX1);
+    DECODE_ESTOQUE_U: entity work.decodificador_7seg(Behavioral) port map(bcd_estoque_u, HEX0);
+    
+end architecture Behavioral;
