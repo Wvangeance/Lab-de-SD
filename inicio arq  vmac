@@ -52,4 +52,11 @@ WHEN PRODX=>
         IF REP <= '1' THEN NEXT_STAGE <= REP_PRODX
         ELSIF 
 
+Error (10887): VHDL error at maquina_vendas_fpga.vhd(125): simplified sensitivity list is not supported in VHDL_1993, and is only supported for VHDL 2008
+Error: Quartus II 64-Bit Analysis & Synthesis was unsuccessful. 1 error, 1 warning
+	Error: Peak virtual memory: 475 megabytes
+	Error: Processing ended: Fri Jul 11 19:38:01 2025
+	Error: Elapsed time: 00:00:01
+	Error: Total CPU time (on all processors): 00:00:01
+Error (293001): Quartus II Full Compilation was unsuccessful. 3 errors, 1 warning
 
