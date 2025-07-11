@@ -1,62 +1,122 @@
-library IEEE;
-use IEEE.STD_LOGIC_1164.ALL;
+ library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
-Entity Vmac is 
-Port (
-Selec: in STD_LOGIC
-Rep: in STD_LOGIC_VECTOR (3 downto 0)
-Din : in STD_LOGIC
-GT: in STD_LOGIC
-EQ: in STD_LOGIC
-LT: in STD_LOGIC
-QTD_disp: in STD_LOGIC_VECTOR (3 downto 0)
-CLK: in STD_LOGIC
-RESET: in STD_LOGIC
+------------------------------------------------------------------
+-- Componente 1: Divisor de Clock (Necessario para a FPGA)
+------------------------------------------------------------------
+entity divisor_de_clock is
+    port (clk_in: in std_logic; rst: in std_logic; clk_out: out std_logic);
+end entity;
+architecture Behavioral of divisor_de_clock is
+    signal contador : integer range 0 to 25000000 := 0;
+    signal s_clk_1hz: std_logic := '0';
+begin
+    process(clk_in, rst)
+    begin
+        if rst = '1' then contador <= 0; s_clk_1hz <= '0';
+        elsif rising_edge(clk_in) then
+            if contador = 24999999 then contador <= 0; s_clk_1hz <= not s_clk_1hz;
+            else contador <= contador + 1; end if;
+        end if;
+    end process;
+    clk_out <= s_clk_1hz;
+end architecture;
 
-REG_SELECT_LD : out STD_LOGIC
-REG_DIN_TOT_CLR: out STD_LOGIC
-ROM_PRECO_EN: out STD_LOGIC
-RAM_ QTD_RD: out STD_LOGIC
-RAM_QTD_WR: out STD_LOGIC
-RAM_QTD_ADDR_SEL: out STD_LOGIC
-DISPENSE_EN: out STD_LOGIC
+------------------------------------------------------------------
+-- Componente 2: Decodificador 7 Segmentos (Necessario para a FPGA)
+------------------------------------------------------------------
+entity decodificador_7seg is
+    port (bcd_in: in std_logic_vector(3 downto 0); seg_out: out std_logic_vector(6 downto 0));
+end entity;
+architecture Behavioral of decodificador_7seg is
+begin
+    with bcd_in select
+        seg_out <= "1000000" when "0000", "1111001" when "0001", "0100100" when "0010",
+                   "0110000" when "0011", "0011001" when "0100", "0010010" when "0101",
+                   "0000010" when "0110", "1111000" when "0111", "0000000" when "1000",
+                   "0010000" when "1001", "1111111" when others;
+end architecture;
 
-);
-END Vmac;
+------------------------------------------------------------------
+-- ENTIDADE DE TOPO: Maquina de Vendas Simplificada
+------------------------------------------------------------------
+entity maquina_vendas_simples is
+    port (
+        -- Entradas Fisicas
+        CLOCK_50      : in  std_logic;
+        KEY           : in  std_logic_vector(3 downto 0);
+        SW            : in  std_logic_vector(1 downto 0);
+        -- Saidas Fisicas
+        LEDR          : out std_logic_vector(0 downto 0);
+        HEX0, HEX1    : out std_logic_vector(6 downto 0); -- Display de Estoque
+        HEX4, HEX5    : out std_logic_vector(6 downto 0)  -- Display de Preco
+    );
+end entity maquina_vendas_simples;
 
-architeture behavioral of Vmac is
+architecture Behavioral of maquina_vendas_simples is
+    -- Componentes necessarios
+    component divisor_de_clock is port (clk_in: in std_logic; rst: in std_logic; clk_out: out std_logic); end component;
+    component decodificador_7seg is port (bcd_in: in std_logic_vector(3 downto 0); seg_out: out std_logic_vector(6 downto 0)); end component;
 
-type state_type is (ESPERA, PRODX, ADD_DIN, DISP, REP_PRODX, AT_QTD)
---ESTADOS REDUZIDOS PARA APENAS UM PRODUTO, AUMENTANDO EM 2 O NUMERO DE ESTADOS PARA CADA PRODUTO NOVO ADICIONADO (ADICIONA-SE MAIS UM PROD E MAIS UM REP_PROD, ESTADOS RELATIVOS AO PRODUTO E A REPOSIÇÃO DO MESMO RESPECTIVAMENTE) --
-SIGNAL CURRENT_STATE, NEXT_STAGE: STATE_TYPE
-BEGIN
-
-IF SELEC= '0' THEN CURRENT_STATE <= ESPERA
-END IF;
-
-END PROCESS;
-
-NEXT_STATE_LOGIC:
-PROCESS (CURRENT_STATE, INPUT)
-BEGIN
-NEXT_STAGE <= CURRENT_STATE;
-
-CASE CURRENT_STATE IS
-WHEN ESPERA=> 
-	IF SELEC = "11" THEN NEXT_STAGE <= PRODX;
-    ELSIF INPUT = "00" OR "01" THEN NEXT_STAGE <= CURRENT_STAGE
+    -- Sinais internos
+    signal s_rst            : std_logic;
+    signal s_clk_1hz        : std_logic;
+    signal s_buy_button     : std_logic;
+    signal s_preco          : integer range 0 to 99;
     
-WHEN PRODX=>
-		OUTPUT <= PRECO_X, QTD_DISPX
-        
-        IF REP <= '1' THEN NEXT_STAGE <= REP_PRODX
-        ELSIF 
+    -- Memoria de estoque como um sinal de array
+    type tipo_estoque is array (0 to 3) of integer range 0 to 99;
+    signal s_estoque        : tipo_estoque := (10, 8, 15, 5); -- Valores iniciais
+    
+    -- Sinais para os displays
+    signal bcd_preco_d, bcd_preco_u     : std_logic_vector(3 downto 0);
+    signal bcd_estoque_d, bcd_estoque_u : std_logic_vector(3 downto 0);
 
-Error (10887): VHDL error at maquina_vendas_fpga.vhd(125): simplified sensitivity list is not supported in VHDL_1993, and is only supported for VHDL 2008
-Error: Quartus II 64-Bit Analysis & Synthesis was unsuccessful. 1 error, 1 warning
-	Error: Peak virtual memory: 475 megabytes
-	Error: Processing ended: Fri Jul 11 19:38:01 2025
-	Error: Elapsed time: 00:00:01
-	Error: Total CPU time (on all processors): 00:00:01
-Error (293001): Quartus II Full Compilation was unsuccessful. 3 errors, 1 warning
+begin
+    -- === MAPEAMENTO DAS ENTRADAS E SAIDAS ===
+    s_rst        <= not KEY(0); -- KEY0 para reset geral
+    s_buy_button <= not KEY(1); -- KEY1 para comprar
+    LEDR(0)      <= s_clk_1hz when s_buy_button = '1' and s_estoque(to_integer(unsigned(SW))) > 0 else '0'; -- Pisca o LED ao comprar
 
+    -- === INSTANCIANDO O DIVISOR DE CLOCK ===
+    CLOCK_DIV: divisor_de_clock port map (CLOCK_50, s_rst, s_clk_1hz);
+
+    -- === LOGICA COMBINACIONAL (Define o preco a ser mostrado) ===
+    -- Substitui a memoria de precos por uma logica simples
+    with SW select
+        s_preco <= 25 when "00", -- Produto 0 custa 25
+                   50 when "01", -- Produto 1 custa 50
+                   75 when "10", -- Produto 2 custa 75
+                   95 when "11", -- Produto 3 custa 95
+                   0  when others;
+                   
+    -- === LOGICA SEQUENCIAL (Decrementa o estoque ao comprar) ===
+    process(s_clk_1hz, s_rst)
+    begin
+        if s_rst = '1' then
+            s_estoque <= (10, 8, 15, 5); -- Reseta para os valores iniciais
+        elsif rising_edge(s_clk_1hz) then
+            if s_buy_button = '1' then
+                if s_estoque(to_integer(unsigned(SW))) > 0 then
+                    s_estoque(to_integer(unsigned(SW))) <= s_estoque(to_integer(unsigned(SW))) - 1;
+                end if;
+            end if;
+        end if;
+    end process;
+    
+    -- === LOGICA DOS DISPLAYS ===
+    -- Converte os numeros para BCD (Dezena e Unidade)
+    bcd_preco_d   <= std_logic_vector(to_unsigned(s_preco / 10, 4));
+    bcd_preco_u   <= std_logic_vector(to_unsigned(s_preco mod 10, 4));
+    
+    bcd_estoque_d <= std_logic_vector(to_unsigned(s_estoque(to_integer(unsigned(SW))) / 10, 4));
+    bcd_estoque_u <= std_logic_vector(to_unsigned(s_estoque(to_integer(unsigned(SW))) mod 10, 4));
+    
+    -- Decodifica os valores BCD para os displays de 7 segmentos
+    DECODE_PRECO_D: decodificador_7seg port map(bcd_preco_d, HEX5);
+    DECODE_PRECO_U: decodificador_7seg port map(bcd_preco_u, HEX4);
+    DECODE_ESTOQUE_D: decodificador_7seg port map(bcd_estoque_d, HEX1);
+    DECODE_ESTOQUE_U: decodificador_7seg port map(bcd_estoque_u, HEX0);
+    
+end architecture Behavioral;
