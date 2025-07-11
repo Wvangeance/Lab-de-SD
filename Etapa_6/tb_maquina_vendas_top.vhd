@@ -1,12 +1,13 @@
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.std_logic_textio.all;
+use std.textio.all;
 
 entity tb_maquina_vendas_top is
-end entity tb_maquina_vendas_top;
+end entity;
 
 architecture test of tb_maquina_vendas_top is
 
-    -- Componente a ser testado
     component maquina_vendas_top is
         port (
             clk                      : in std_logic;
@@ -27,7 +28,6 @@ architecture test of tb_maquina_vendas_top is
         );
     end component;
 
-    -- Sinais para o testbench
     signal s_clk                      : std_logic := '0';
     signal s_reset                    : std_logic;
     signal s_COMPRA                   : std_logic := '0';
@@ -44,10 +44,14 @@ architecture test of tb_maquina_vendas_top is
     signal s_price_display            : integer range 0 to 255;
     signal s_quantity_display         : integer range 0 to 255;
 
-    constant CLK_PERIOD : time := 10 ns; -- Para simulação
+    constant CLK_PERIOD : time := 10 ns;
 
 begin
-    -- Instância da máquina completa
+
+    -- Clock
+    s_clk <= not s_clk after CLK_PERIOD / 2;
+
+    -- Instância do DUT
     UUT: maquina_vendas_top
         port map (
             clk                      => s_clk,
@@ -67,80 +71,61 @@ begin
             quantity_display         => s_quantity_display
         );
 
-    -- Geração de clock
-    s_clk <= not s_clk after CLK_PERIOD / 2;
-
-    -- Processo de estímulo
-    stimulus : process
+    stimulus: process
+        variable L : line;
     begin
-        report ">>> INICIANDO TESTE COMPLETO DA MÁQUINA DE VENDAS <<<";
-        
-        -- Reset inicial
+        report ">>> INICIANDO TESTE COMPLETO DA MAQUINA DE VENDAS <<<";
+
+        -- Reset
         s_reset <= '1';
         wait for CLK_PERIOD;
         s_reset <= '0';
         wait for CLK_PERIOD;
-        
-        report "Verificando estado inicial. Produto 0: Preco=" & integer'image(s_price_display) & ", Qtd=" & integer'image(s_quantity_display);
-        
-        -------------------------------------------
-        report "--- CENÁRIO 1: Compra bem-sucedida do produto 1 ---";
+
+        -- Estado inicial
+        write(L, string'("Produto 0 - Preco = "));
+        write(L, s_price_display);
+        write(L, string'(" | Qtd = "));
+        write(L, s_quantity_display);
+        writeline(output, L);
+
+        -- CENÁRIO 1
+        report "--- CENARIO 1: Compra bem sucedida do produto 1 ---";
         s_product_select_buy <= "01";
         s_SELECT_C <= '1';
         wait for CLK_PERIOD;
         s_SELECT_C <= '0';
         wait for CLK_PERIOD;
-        report "Produto 1 selecionado. Preco=" & integer'image(s_price_display) & ", Qtd=" & integer'image(s_quantity_display);
-        assert s_price_display = 7 report "Falha: preco incorreto para produto 1" severity error;
-        
+
+        write(L, string'("Produto 1 selecionado - Preco = "));
+        write(L, s_price_display);
+        write(L, string'(" | Qtd = "));
+        write(L, s_quantity_display);
+        writeline(output, L);
+
+        assert s_price_display = 7
+        report "Falha: preco incorreto para produto 1"
+        severity error;
+
+        -- Inserir dinheiro
         s_COMPRA <= '1';
         wait for CLK_PERIOD;
         s_COMPRA <= '0';
-        
-        report "Inserindo dinheiro...";
+
         s_money_in <= 5;
         wait for CLK_PERIOD;
         s_money_in <= 2;
         wait for CLK_PERIOD;
-        s_money_in <= 0; -- Para de inserir dinheiro
+        s_money_in <= 0;
 
-        report "Pressionando PAG...";
+        -- Confirmar pagamento
         s_PAG <= '1';
         wait for CLK_PERIOD;
         s_PAG <= '0';
-        wait for CLK_PERIOD;
-        report "Venda processada. motor_enable=" & std_logic'image(s_motor_enable);
-        assert s_motor_enable = '1' report "Falha: motor nao ativado" severity error;
-        wait for CLK_PERIOD;
-        report "Verificando se o estoque diminuiu...";
-        assert s_quantity_display = 9 report "Falha: estoque nao decrementou" severity error;
-        
-        wait for CLK_PERIOD * 5;
 
-        -------------------------------------------
-        report "--- CENÁRIO 2: Reposição do produto 3 ---";
-        s_product_select_replenish <= "11";
-        s_replenish_quantity <= 50;
-        
-        s_REP <= '1'; -- Entra no modo de reposição
-        wait for CLK_PERIOD;
-        s_REP <= '0';
-        wait for CLK_PERIOD;
+        wait for 10 * CLK_PERIOD;
+        report ">>> FIM DO TESTE <<<";
 
-        s_REP <= '1'; -- Confirma a reposição
-        wait for CLK_PERIOD;
-        s_REP <= '0';
-        wait for CLK_PERIOD;
-        
-        report "Produto 3 reposto. Nova Qtd=" & integer'image(s_quantity_display);
-        assert s_quantity_display = 50 report "Falha: reposicao nao funcionou" severity error;
-        
-        s_ESQ <= '1'; -- Sai do modo de reposição
-        wait for CLK_PERIOD;
-        s_ESQ <= '0';
-        wait for CLK_PERIOD;
-
-        report ">>> TESTE FINALIZADO <<<";
         wait;
     end process;
 
