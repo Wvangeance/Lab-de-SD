@@ -1,75 +1,65 @@
 To,Location
 # Clock e Reset
-clk,PIN_N2
-reset,PIN_R22
+CLOCK_50,PIN_N2
+KEY[0],PIN_R22
 
-# Botoes de Acao Principais (KEY)
-COMPRA,PIN_R21
-PAG,PIN_T22
-REP,PIN_T21
+# Entradas de Controle do Usuario
+KEY[1],PIN_R21
+KEY[2],PIN_T22
+KEY[3],PIN_T21
+SW[17],PIN_U22
 
-# Acoes Secundarias (SW)
-SELECT_C,PIN_U22
-ESC,PIN_U21
-ESQ,PIN_V22
+# Selecao de Produto
+SW[1],PIN_Y22
+SW[0],PIN_Y21
 
-# Selecao de Produto (SW)
-product_select_buy[1],PIN_Y22
-product_select_buy[0],PIN_Y21
-product_select_replenish[1],PIN_W22
-product_select_replenish[0],PIN_W21
+# Saida do Motor
+LEDR[0],PIN_G19
 
-# Entrada de Dados (money_in e replenish_quantity compartilhados)
-money_in[7],PIN_AE22
-money_in[6],PIN_AD22
-money_in[5],PIN_AC22
-money_in[4],PIN_AB22
-money_in[3],PIN_V21
-money_in[2],PIN_AE23
-money_in[1],PIN_AD23
-money_in[0],PIN_AC23
-replenish_quantity[7],PIN_AE22
-replenish_quantity[6],PIN_AD22
-replenish_quantity[5],PIN_AC22
-replenish_quantity[4],PIN_AB22
-replenish_quantity[3],PIN_V21
-replenish_quantity[2],PIN_AE23
-replenish_quantity[1],PIN_AD23
-replenish_quantity[0],PIN_AC23
+# Display de Preco (HEX1 = Dezena, HEX0 = Unidade)
+HEX1[6],PIN_AF10
+HEX1[5],PIN_AB12
+HEX1[4],PIN_AC12
+HEX1[3],PIN_AD11
+HEX1[2],PIN_AE11
+HEX1[1],PIN_V14
+HEX1[0],PIN_V13
+HEX0[6],PIN_AE8
+HEX0[5],PIN_AF8
+HEX0[4],PIN_AD9
+HEX0[3],PIN_AC9
+HEX0[2],PIN_AE9
+HEX0[1],PIN_AB10
+HEX0[0],PIN_AC10
 
-# Saida para Atuador (LED)
-motor_enable,PIN_G19
+# Display de Saldo (HEX3 = Dezena, HEX2 = Unidade)
+HEX3[6],PIN_Y13
+HEX3[5],PIN_T15
+HEX3[4],PIN_T14
+HEX3[3],PIN_T13
+HEX3[2],PIN_R13
+HEX3[1],PIN_AB15
+HEX3[0],PIN_AA15
+HEX2[6],PIN_AA14
+HEX2[5],PIN_AG13
+HEX2[4],PIN_AF13
+HEX2[3],PIN_AE13
+HEX2[2],PIN_AC13
+HEX2[1],PIN_AB13
+HEX2[0],PIN_AD13
 
-# Saidas para Displays de 7 Segmentos
-# Preco - Dezena (HEX1)
-price_display_tens[6],PIN_AF10
-price_display_tens[5],PIN_AB12
-price_display_tens[4],PIN_AC12
-price_display_tens[3],PIN_AD11
-price_display_tens[2],PIN_AE11
-price_display_tens[1],PIN_V14
-price_display_tens[0],PIN_V13
-# Preco - Unidade (HEX0)
-price_display_ones[6],PIN_AE8
-price_display_ones[5],PIN_AF8
-price_display_ones[4],PIN_AD9
-price_display_ones[3],PIN_AC9
-price_display_ones[2],PIN_AE9
-price_display_ones[1],PIN_AB10
-price_display_ones[0],PIN_AC10
-# Quantidade - Dezena (HEX3)
-quantity_display_tens[6],PIN_Y13
-quantity_display_tens[5],PIN_T15
-quantity_display_tens[4],PIN_T14
-quantity_display_tens[3],PIN_T13
-quantity_display_tens[2],PIN_R13
-quantity_display_tens[1],PIN_AB15
-quantity_display_tens[0],PIN_AA15
-# Quantidade - Unidade (HEX2)
-quantity_display_ones[6],PIN_AA14
-quantity_display_ones[5],PIN_AG13
-quantity_display_ones[4],PIN_AF13
-quantity_display_ones[3],PIN_AE13
-quantity_display_ones[2],PIN_AC13
-quantity_display_ones[1],PIN_AB13
-quantity_display_ones[0],PIN_AD13
+# Display de Estoque (HEX5 = Dezena, HEX4 = Unidade)
+HEX5[6],PIN_U18
+HEX5[5],PIN_U17
+HEX5[4],PIN_AA20
+HEX5[3],PIN_AA21
+HEX5[2],PIN_AB21
+HEX5[1],PIN_AC21
+HEX5[0],PIN_AD21
+HEX4[6],PIN_AE18
+HEX4[5],PIN_AF18
+HEX4[4],PIN_AG18
+HEX4[3],PIN_AH18
+HEX4[2],PIN_AD18
+HEX4[1],PIN_AC18
+HEX4[0],PIN_AB18
