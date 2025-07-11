@@ -1,0 +1,110 @@
+library ieee;
+use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
+
+entity maquina_vendas is
+    port (
+        clk                        : in std_logic;
+        reset                      : in std_logic;
+        money_in                   : in integer range 0 to 255;
+        product_select_buy         : in std_logic_vector(2 downto 0);
+        product_select_replenish   : in std_logic_vector(2 downto 0);
+        replenish_quantity         : in integer range 0 to 255;
+        COMPRA                     : in std_logic;
+        SELECT_C                   : in std_logic;
+        PAG                        : in std_logic;
+        REP                        : in std_logic;
+        ESC                        : in std_logic;
+        ESQ                        : in std_logic;
+        QTD                        : in std_logic;
+        RS                         : in std_logic;
+        quantity_display           : out integer range 0 to 255;
+        price_display              : out integer range 0 to 255;
+        motor_enable               : out std_logic
+    );
+end entity;
+
+architecture rtl of maquina_vendas is
+
+    type state_type is (Wait, Selecao_C, Selecao_R, Entrega);
+    signal state, next_state : state_type;
+
+    signal produto_sel_comprado : integer range 0 to 3 := 0;
+    signal produto_sel_repor    : integer range 0 to 3 := 0;
+    signal preco                : integer_vector(0 to 3) := (10, 15, 20, 25);
+    signal quantidade           : integer_vector(0 to 3) := (5, 5, 5, 5);
+    signal valor_acumulado      : integer range 0 to 255 := 0;
+    signal entrega_efetuada     : std_logic := '0';
+
+begin
+
+    -- Registro de estado
+    process(clk, reset)
+    begin
+        if reset = '1' then
+            state <= Wait;
+            valor_acumulado <= 0;
+            motor_enable <= '0';
+            entrega_efetuada <= '0';
+        elsif rising_edge(clk) then
+            state <= next_state;
+        end if;
+    end process;
+
+    -- FSM principal
+    process(state, COMPRA, REP, SELECT_C, ESC, PAG, ESQ, money_in, produto_sel_comprado, produto_sel_repor)
+    begin
+        -- valores padrão
+        next_state <= state;
+        motor_enable <= '0';
+        entrega_efetuada <= '0';
+
+        case state is
+            when Wait =>
+                if COMPRA = '1' then
+                    next_state <= Selecao_C;
+                elsif REP = '1' then
+                    next_state <= Selecao_R;
+                end if;
+
+            when Selecao_C =>
+                produto_sel_comprado <= to_integer(unsigned(product_select_buy(1 downto 0)));
+                price_display <= preco(produto_sel_comprado);
+                quantity_display <= quantidade(produto_sel_comprado);
+
+                if ESC = '1' or ESQ = '1' then
+                    valor_acumulado <= 0;
+                    next_state <= Wait;
+                elsif SELECT_C = '1' then
+                    valor_acumulado <= valor_acumulado + money_in;
+                elsif PAG = '1' then
+                    if quantidade(produto_sel_comprado) > 0 and valor_acumulado >= preco(produto_sel_comprado) then
+                        quantidade(produto_sel_comprado) <= quantidade(produto_sel_comprado) - 1;
+                        valor_acumulado <= 0;
+                        next_state <= Entrega;
+                    end if;
+                end if;
+
+            when Selecao_R =>
+                produto_sel_repor <= to_integer(unsigned(product_select_replenish(1 downto 0)));
+                quantity_display <= quantidade(produto_sel_repor);
+                price_display <= preco(produto_sel_repor);
+
+                if REP = '1' then
+                    quantidade(produto_sel_repor) <= quantidade(produto_sel_repor) + replenish_quantity;
+                    next_state <= Wait;
+                elsif ESQ = '1' then
+                    next_state <= Wait;
+                end if;
+
+            when Entrega =>
+                motor_enable <= '1';
+                entrega_efetuada <= '1';
+                next_state <= Wait;
+
+            when others =>
+                next_state <= Wait;
+        end case;
+    end process;
+
+end architecture;
