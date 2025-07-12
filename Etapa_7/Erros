@@ -1,9 +1,12 @@
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(29) near text "Wait";  expecting an identifier ("wait" is a reserved keyword), or a character
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(45) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(63) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(77) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(95) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(97) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(103) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
-Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(106) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(40) near text "if";  expecting "(", or "'", or "."
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(42) near text "produto_sel_comprado";  expecting "(", or "'", or "."
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(43) near text "then";  expecting "(", or "'", or "."
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(45) near text "produto_sel_repor";  expecting "(", or "'", or "."
+Error (10500): VHDL syntax error at maquina_vendas_fpga.vhd(48) near text "Wait";  expecting "(", or an identifier ("wait" is a reserved keyword), or  unary operator
 Info (12021): Found 0 design units, including 0 entities, in source file maquina_vendas_fpga.vhd
+Error: Quartus II 64-Bit Analysis & Synthesis was unsuccessful. 5 errors, 1 warning
+	Error: Peak virtual memory: 475 megabytes
+	Error: Processing ended: Fri Jul 11 21:02:23 2025
+	Error: Elapsed time: 00:00:01
+	Error: Total CPU time (on all processors): 00:00:01
+Error (293001): Quartus II Full Compilation was unsuccessful. 7 errors, 1 warning
